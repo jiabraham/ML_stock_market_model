@@ -1,0 +1,22 @@
+#!/bin/bash
+
+set -x
+
+cd /Users/Jojo/stock_market_project/stock_market/data/
+export PATH=/Users/Jojo/stock_market_project/stock_market/project/scripts:/usr/local/bin:$PATH
+
+
+input="feats_to_process"
+while read feats_to_process
+do
+    cd ${feats_to_process}
+
+    fgrep -w -f ../../features.0807.txt new_articles_sent.filtered.tokenized.txt | sort -u > new_articles_sent.features.txt
+    
+    cd /Users/Jojo/stock_market_project/stock_market/data/
+    
+done < ${input}
+
+
+
+

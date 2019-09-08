@@ -1,0 +1,114 @@
+#!/usr/local/bin/python3
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import fileinput
+import getopt
+import numpy as np
+import pandas as pd
+import sys
+import tensorflow as tf
+from   tensorflow import keras
+from   tensorflow import feature_column
+from   tensorflow.keras import layers
+from   sklearn.model_selection import train_test_split
+
+
+
+print(tf.__version__)
+
+def read_vocabulary(filename):
+    vocabulary = {}
+    vocinput = fileinput.input(filename)
+    for index, line in enumerate(vocinput, start=1):
+        line = line.strip()
+        vocabulary[line] = index
+    vocinput.close()
+    return vocabulary  
+
+def read_features(filename, vocabulary):
+    event = []
+    features_input = fileinput.input(filename)
+    for line in features_input:
+        line = line.strip()
+        if line in vocabulary:
+            event.append(line)
+        else:
+            event.append("unk")
+    features_input.close()
+    return event
+
+def read_decision(filename):
+    dec_input = fileinput.input(filename)
+    dec = ""
+    for line in dec_input:
+        dec = line.strip()
+    dec_input.close()
+    return dec
+
+def read_corpus(filename, vocabulary):
+    # We assume that the decision file is 2 directories above the feature file
+    corpus = []
+    decisions = []
+    corpusinput = fileinput.FileInput(filename)
+    for line in corpusinput:
+        line = line.strip()
+        arr = line.split('-')
+        date = "%s-%s-%s" % (arr[0], arr[1], arr[2])
+        decision_file = "%s/decision" % (line)
+        features_file = "%s/%s/new_articles_sent.features.txt" % (line, date)
+        event = read_features(features_file, vocabulary)
+        corpus.append(event)
+        decision = read_decision(decision_file)
+        decisions.append(decision)
+    corpus = pd.DataFrame.from_records(corpus, columns=["features"]*1918)
+    decisions = pd.DataFrame.from_records(decisions, columns=["decisions"])
+    print(corpus.describe())
+    print(decisions.describe())
+    return corpus, decisions
+
+
+
+
+def main(argv):
+   corpus = ''
+   try:
+       opts, args = getopt.getopt(argv,"hc:v:",["corpus=", "vocabulary="])
+
+   except getopt.GetoptError:
+       print('stock_market_model.py -c corpus_file -v vocabulary')
+       sys.exit(2)
+
+   corpusfile = ""
+   vocabfile = ""
+   for opt, arg in opts:
+      if opt == '-h':
+          print('stock_market_model.py -c <corpus_file> -v <vocabulary>')
+          sys.exit()
+      elif opt in ("-c", "--corpus"):
+          corpusfile = arg
+      elif opt in ("-v", "--vocabulary"):
+          vocabfile = arg
+
+   if not vocabfile:
+       print ("Must specify a vocabulary file!!");
+       return -1
+
+   pd.set_option('display.max_columns', 30);
+   pd.set_option('display.max_rows', 10);
+   vocabulary = read_vocabulary(vocabfile)
+   (corpus, decisions) = read_corpus(corpusfile, vocabulary)
+   # convert to tensors
+   
+   # split into train test
+   # train
+   # eval on test
+   
+   convert_to_tensors()
+
+   
+   
+   return
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
