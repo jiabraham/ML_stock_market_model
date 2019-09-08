@@ -1,0 +1,4 @@
+#!/bin/bash
+
+perl -pe 's/^\s*//; s/\s*$//; s/\s\s*/ /g; s/$/\n/;'
+
